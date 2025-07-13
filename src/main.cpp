@@ -110,6 +110,7 @@ int main (int argc, const char * argv[])
 {
 	post("------------------------------------------------\n");	
 	post("A tool for the expression of sound as pure form.\n");	
+	post("Matthias' version.\n");	
 	post("------------------------------------------------\n");	
 	post("--- version %s\n", gVersionString);
 	
