@@ -15,6 +15,7 @@
 //    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "VM.hpp"
+#include "DeviceSelection.hpp"
 #include <stdio.h>
 #include <histedit.h>
 #include <algorithm>
@@ -99,7 +100,7 @@ const char* gVersionString = "0.1.21";
 
 static void usage()
 {
-	fprintf(stdout, "sapf [-r sample-rate][-p prelude-file]\n");
+	fprintf(stdout, "sapf -d device[-r sample-rate][-p prelude-file]\n");
 	fprintf(stdout, "\n");
 	fprintf(stdout, "sapf [-h]\n");
 	fprintf(stdout, "    print this help\n");
@@ -113,7 +114,7 @@ int main (int argc, const char * argv[])
 	post("Matthias' version.\n");	
 	post("------------------------------------------------\n");	
 	post("--- version %s\n", gVersionString);
-	
+
 	for (int i = 1; i < argc;) {
 		int c = argv[i][0];
 		if (c == '-') {
@@ -126,6 +127,21 @@ int main (int argc, const char * argv[])
 					if (sr < 1000. || sr > 768000.) { post("sample rate out of range.\n"); return 1; }
 					vm.setSampleRate(sr);
 					post("sample rate set to %g\n", vm.ar.sampleRate);
+					i += 2;
+				} break;
+				case 'd' : {
+					if (argc <= i+1) { post("expected device name after -d\n"); return 1; }
+					unsigned deviceID = (unsigned)getDeviceIDByName(argv[i+1]);
+					if (!isValidDevice(deviceID)) {
+						post("The device name provided does not match any devices connected!\n");
+						post("Selecting standard output.\n");
+						post("Here is the list:\n");
+						printAvailableAudioDevices();
+						vm.setDevice(0);
+					}
+					//post("device id in main %u", deviceID);
+					vm.setDevice(deviceID);
+					post("device set to %s\n", argv[i+1]);
 					i += 2;
 				} break;
 				case 'p' : {
@@ -156,10 +172,10 @@ int main (int argc, const char * argv[])
 	AddCoreOps();
 	AddMathOps();
 	AddStreamOps();
-    AddRandomOps();
+	AddRandomOps();
 	AddUGenOps();
 	AddMidiOps();
-    AddSetOps();
+	AddSetOps();
 	
 	
 	vm.log_file = getenv("SAPF_LOG");

@@ -20,6 +20,7 @@
 #include <atomic>
 
 #include "SoundFiles.hpp"
+#include "DeviceSelection.hpp"
 
 pthread_mutex_t gPlayerMutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -214,10 +215,15 @@ static AudioComponentInstance openAU(UInt32 inType, UInt32 inSubtype, UInt32 inM
 	return au;
 }
 
-static OSStatus createGraph(AUPlayer* player)
+static OSStatus createGraph(AUPlayer* player, AudioDeviceID deviceID)
 {
-    OSStatus err = noErr;
-	AudioComponentInstance outputUnit = openAU('auou', 'def ', 'appl');
+	//post("Device id in createGraph %u\n", (unsigned)deviceID);
+	OSStatus err = noErr;
+	AudioComponentInstance outputUnit = openAU(
+		kAudioUnitType_Output, 
+		kAudioUnitSubType_HALOutput, 
+		kAudioUnitManufacturer_Apple
+	);
 	if (!outputUnit) {
 		post("open output unit failed\n");
 		return 'fail';
@@ -228,6 +234,16 @@ static OSStatus createGraph(AUPlayer* player)
 	UInt32 flags = kAudioFormatFlagsNativeFloatPacked | kAudioFormatFlagIsNonInterleaved;
 	AudioStreamBasicDescription fmt = { vm.ar.sampleRate, kAudioFormatLinearPCM, flags, 4, 1, 4, (UInt32)player->numChannels, 32, 0 };
 	
+	if (deviceID != kAudioObjectUnknown)
+	{
+		//post("fart\n");
+		err = AudioUnitSetProperty(outputUnit, kAudioOutputUnitProperty_CurrentDevice, kAudioUnitScope_Global, 0, &deviceID, sizeof(deviceID));
+		if (err) {
+			post("set outputUnit device failed\n");
+			return err;
+		}
+	}
+
 	err = AudioUnitSetProperty(outputUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &fmt, sizeof(fmt));
 	if (err) {
 		post("set outputUnit client format failed\n");
@@ -304,7 +320,7 @@ void playWithAudioUnit(Thread& th, V& v)
 
 	{
 		OSStatus err = noErr;
-		err = createGraph(player);
+		err = createGraph(player, (AudioDeviceID)vm.deviceID);
 		if (err) {
 			post("play failed: %d '%4.4s'\n", (int)err, (char*)&err);
 			throw errFailed;
@@ -379,7 +395,7 @@ void recordWithAudioUnit(Thread& th, V& v, Arg filename)
 
 	{
 		OSStatus err = noErr;
-		err = createGraph(player);
+		err = createGraph(player, kAudioObjectUnknown);
 		if (err) {
 			post("play failed: %d '%4.4s'\n", (int)err, (char*)&err);
 			throw errFailed;
