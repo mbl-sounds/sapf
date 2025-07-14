@@ -482,6 +482,11 @@ void VM::setSampleRate(double inSampleRate)
 	kr = Rate(ar, kDefaultControlBlockSize);
 }
 
+void VM::setDevice(unsigned deviceID)
+{
+	this->deviceID = deviceID;
+}
+
 V VM::def(Arg key, Arg value)
 {
 	builtins->putImpure(key, value); 

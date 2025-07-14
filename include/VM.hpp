@@ -321,6 +321,8 @@ public:
 	
 	Rate ar;
 	Rate kr;
+
+	unsigned deviceID; //not sure if here is the best spot
 	
 	int VblockSize;
 
@@ -393,6 +395,7 @@ public:
 	~VM();
 	
 	void setSampleRate(double inSampleRate);
+	void setDevice(unsigned deviceID);
 	
 	V def(Arg key, Arg value);
 	V def(const char* name, Arg value);
