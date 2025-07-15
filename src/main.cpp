@@ -100,7 +100,7 @@ const char* gVersionString = "0.1.21";
 
 static void usage()
 {
-	fprintf(stdout, "sapf -d device[-r sample-rate][-p prelude-file]\n");
+	fprintf(stdout, "sapf [-d device][-r sample-rate][-p prelude-file]\n");
 	fprintf(stdout, "\n");
 	fprintf(stdout, "sapf [-h]\n");
 	fprintf(stdout, "    print this help\n");
